@@ -947,6 +947,7 @@ export default function HabitTracker() {
                 height={32}
                 className="rounded-full border-2 border-pink-500 shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50"
                 tabIndex={0}
+                unoptimized
               />
               {/* Mobile Menu Button */}
               <button
@@ -1414,6 +1415,7 @@ export default function HabitTracker() {
                               width={36}
                               height={36}
                               className="rounded-full border-2 border-pink-400 shadow"
+                              unoptimized
                             />
                             <span className="font-semibold text-white">{user.name}</span>
                             {user.isCurrentUser && (
@@ -1461,6 +1463,7 @@ export default function HabitTracker() {
                         width={40}
                         height={40}
                         className="rounded-full border-2 border-pink-400 shadow"
+                        unoptimized
                       />
                       <div className="flex-1">
                         <div className="font-semibold text-white">{challenge.friend}</div>
@@ -1617,6 +1620,7 @@ export default function HabitTracker() {
                         width={40}
                         height={40}
                         className="rounded-full border-2 border-pink-400 shadow"
+                        unoptimized
                       />
                       <div className="flex-1">
                         <span className="font-semibold text-white">{item.user}</span>
@@ -1661,6 +1665,7 @@ export default function HabitTracker() {
                               width={28}
                               height={28}
                               className="rounded-full border-2 border-pink-400 shadow"
+                              unoptimized
                             />
                           ))}
                         </div>
@@ -1754,6 +1759,7 @@ export default function HabitTracker() {
                               width={28}
                               height={28}
                               className="rounded-full"
+                              unoptimized
                             />
                             {f.name}
                           </button>
