@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring, useRef, useTransform, useScroll } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useScroll } from "framer-motion";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line } from "recharts";
+import Image from "next/image";
 
 // Google Fonts import (Inter)
 const fontLink = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap";
@@ -30,8 +31,15 @@ type Notification = {
   read: boolean;
 };
 
+type NotificationSettings = {
+  daily: boolean;
+  weekly: boolean;
+  monthly: boolean;
+  achievements: boolean;
+};
+
 // Mock habits data
-const initialHabits = [
+const initialHabits: Habit[] = [
   {
     id: "1",
     name: "Make bed",
@@ -85,42 +93,32 @@ const initialHabits = [
 // Mock notifications data
 const mockNotifications: Notification[] = [
   {
-    id: '1',
-    type: 'achievement',
-    title: 'Early Bird!',
-    message: 'You completed your morning routine 5 days in a row!',
-    icon: '🌅',
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    id: "1",
+    type: "achievement",
+    title: "7 Day Streak!",
+    message: "You've maintained a 7-day streak! Keep it up!",
+    icon: "🏆",
+    timestamp: new Date(),
     read: false
   },
   {
-    id: '2',
-    type: 'streak',
-    title: 'New Streak Record!',
-    message: 'You\'ve maintained your meditation streak for 21 days!',
-    icon: '🔥',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    read: false
-  },
-  {
-    id: '3',
-    type: 'reminder',
-    title: 'Time to Check In',
-    message: 'Don\'t forget to log your water intake for today!',
-    icon: '💧',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-    read: true
-  },
-  {
-    id: '4',
-    type: 'milestone',
-    title: '100 Days Strong!',
-    message: 'Congratulations on completing 100 days of habit tracking!',
-    icon: '🎉',
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+    id: "2",
+    type: "reminder",
+    title: "Daily Check-in",
+    message: "Don't forget to check your habits for today!",
+    icon: "🔔",
+    timestamp: new Date(),
     read: true
   }
 ];
+
+// Mock notification settings
+const initialNotificationSettings: NotificationSettings = {
+  daily: true,
+  weekly: true,
+  monthly: true,
+  achievements: true
+};
 
 // Mock leaderboard data
 const leaderboardData = [
@@ -485,7 +483,7 @@ export default function HabitTracker() {
   }, []);
 
   // State for habits
-  const [habits, setHabits] = useState(initialHabits);
+  const [habits, setHabits] = useState<Habit[]>(initialHabits);
   // State for completed count
   const completedCount = habits.filter((h) => h.checked).length;
   // State for modal
@@ -502,9 +500,9 @@ export default function HabitTracker() {
   // Settings state
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [displayName, setDisplayName] = useState("Alex");
-  const [reminderTime, setReminderTime] = useState("08:00");
   const [darkMode, setDarkMode] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>(initialNotificationSettings);
   // Reminders modal state
   const [remindersOpen, setRemindersOpen] = useState(false);
   const [reminders, setReminders] = useState([
@@ -551,7 +549,7 @@ export default function HabitTracker() {
     const hoursSinceLastCheck = (now.getTime() - lastCheck.getTime()) / (1000 * 60 * 60);
 
     if (hoursSinceLastCheck >= 24) {
-      const missed = habits.filter(h => !h.checked);
+      const missed = habits.filter(h => !h.checked) as Habit[];
       if (missed.length > 0) {
         setMissedHabits(missed);
         setShowMissedHabits(true);
@@ -683,9 +681,6 @@ export default function HabitTracker() {
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  const springConfig = { damping: 25, stiffness: 200 };
-  const springX = useSpring(cursorX, springConfig);
-  const springY = useSpring(cursorY, springConfig);
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
@@ -695,7 +690,7 @@ export default function HabitTracker() {
 
     window.addEventListener('mousemove', moveCursor);
     return () => window.removeEventListener('mousemove', moveCursor);
-  }, []);
+  }, [cursorX, cursorY]);
 
   // Scroll progress tracking
   const { scrollYProgress } = useScroll();
@@ -945,10 +940,12 @@ export default function HabitTracker() {
                   </motion.span>
                 )}
               </motion.button>
-              <img 
+              <Image 
                 src="https://randomuser.me/api/portraits/men/32.jpg" 
                 alt="User avatar" 
-                className="w-8 h-8 rounded-full border-2 border-pink-500 shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50"
+                width={32}
+                height={32}
+                className="rounded-full border-2 border-pink-500 shadow hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-opacity-50"
                 tabIndex={0}
               />
               {/* Mobile Menu Button */}
@@ -1411,7 +1408,13 @@ export default function HabitTracker() {
                         >
                           <td className="px-4 py-3 font-bold text-lg text-pink-400">{idx + 1}</td>
                           <td className="px-4 py-3 flex items-center gap-3">
-                            <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full border-2 border-pink-400 shadow" />
+                            <Image 
+                              src={user.avatar} 
+                              alt={user.name} 
+                              width={36}
+                              height={36}
+                              className="rounded-full border-2 border-pink-400 shadow"
+                            />
                             <span className="font-semibold text-white">{user.name}</span>
                             {user.isCurrentUser && (
                               <span className="ml-2 px-2 py-0.5 rounded-full bg-pink-500 text-xs text-white font-bold">You</span>
@@ -1452,7 +1455,13 @@ export default function HabitTracker() {
                         'border-green-400'
                       }`}
                     >
-                      <img src={challenge.avatar} alt={challenge.friend} className="w-10 h-10 rounded-full border-2 border-pink-400 shadow" />
+                      <Image 
+                        src={challenge.avatar} 
+                        alt={challenge.friend} 
+                        width={40}
+                        height={40}
+                        className="rounded-full border-2 border-pink-400 shadow"
+                      />
                       <div className="flex-1">
                         <div className="font-semibold text-white">{challenge.friend}</div>
                         <div className="text-sm text-gray-400">{challenge.habit} • {challenge.days} days</div>
@@ -1602,7 +1611,13 @@ export default function HabitTracker() {
                       transition={{ duration: 0.3, delay: idx * 0.07 }}
                       className="flex items-center gap-4 bg-gray-900/80 rounded-xl p-4 shadow group hover:bg-pink-500/10 transition"
                     >
-                      <img src={item.avatar} alt={item.user} className="w-10 h-10 rounded-full border-2 border-pink-400 shadow" />
+                      <Image 
+                        src={item.avatar} 
+                        alt={item.user} 
+                        width={40}
+                        height={40}
+                        className="rounded-full border-2 border-pink-400 shadow"
+                      />
                       <div className="flex-1">
                         <span className="font-semibold text-white">{item.user}</span>
                         <span className="text-gray-300 ml-2">{item.action}</span>
@@ -1639,7 +1654,14 @@ export default function HabitTracker() {
                         <span className="font-semibold text-white text-lg">{group.name}</span>
                         <div className="flex -space-x-2 ml-2">
                           {group.members.map((m, i) => (
-                            <img key={i} src={m.avatar} alt={m.name} className="w-7 h-7 rounded-full border-2 border-pink-400 shadow" />
+                            <Image 
+                              key={i}
+                              src={m.avatar} 
+                              alt={m.name} 
+                              width={28}
+                              height={28}
+                              className="rounded-full border-2 border-pink-400 shadow"
+                            />
                           ))}
                         </div>
                       </div>
@@ -1726,7 +1748,13 @@ export default function HabitTracker() {
                                 : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
                             }`}
                           >
-                            <img src={f.avatar} alt={f.name} className="w-5 h-5 rounded-full" />
+                            <Image 
+                              src={f.avatar} 
+                              alt={f.name} 
+                              width={28}
+                              height={28}
+                              className="rounded-full"
+                            />
                             {f.name}
                           </button>
                         ))}
@@ -1892,7 +1920,7 @@ export default function HabitTracker() {
                   {footerModalContent === 'contact' && (
                     <div className="space-y-4">
                       <p className="text-gray-300">
-                        We'd love to hear from you! Whether you have questions, suggestions, or feedback, feel free to reach out.
+                        We&apos;d love to hear from you! Whether you have questions, suggestions, or feedback, feel free to reach out.
                       </p>
                       <div className="mt-6">
                         <h3 className="text-lg font-semibold text-pink-400 mb-2">Get in Touch</h3>
@@ -1905,7 +1933,7 @@ export default function HabitTracker() {
                       <div className="mt-6">
                         <h3 className="text-lg font-semibold text-pink-400 mb-2">Feedback</h3>
                         <p className="text-gray-300">
-                          Your feedback helps us improve HabitFlow. Let us know what features you'd like to see or how we can make the app better for you.
+                          Your feedback helps us improve HabitFlow. Let us know what features you&apos;d like to see or how we can make the app better for you.
                         </p>
                       </div>
                     </div>
@@ -2063,42 +2091,42 @@ export default function HabitTracker() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-pink-400">Notifications</h3>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center justify-between">
                         <input
                           type="checkbox"
-                          checked={notifications.daily}
-                          onChange={() => setNotifications(prev => ({ ...prev, daily: !prev.daily }))}
+                          checked={notificationSettings.daily}
+                          onChange={() => setNotificationSettings(prev => ({ ...prev, daily: !prev.daily }))}
                           className="accent-pink-500 w-4 h-4"
                         />
                         Daily Reminders
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
+                      </div>
+                      <div className="flex items-center justify-between">
                         <input
                           type="checkbox"
-                          checked={notifications.weekly}
-                          onChange={() => setNotifications(prev => ({ ...prev, weekly: !prev.weekly }))}
+                          checked={notificationSettings.weekly}
+                          onChange={() => setNotificationSettings(prev => ({ ...prev, weekly: !prev.weekly }))}
                           className="accent-pink-500 w-4 h-4"
                         />
                         Weekly Progress
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
+                      </div>
+                      <div className="flex items-center justify-between">
                         <input
                           type="checkbox"
-                          checked={notifications.monthly}
-                          onChange={() => setNotifications(prev => ({ ...prev, monthly: !prev.monthly }))}
+                          checked={notificationSettings.monthly}
+                          onChange={() => setNotificationSettings(prev => ({ ...prev, monthly: !prev.monthly }))}
                           className="accent-pink-500 w-4 h-4"
                         />
                         Monthly Summary
-                      </label>
-                      <label className="flex items-center gap-2 text-sm">
+                      </div>
+                      <div className="flex items-center justify-between">
                         <input
                           type="checkbox"
-                          checked={notifications.achievements}
-                          onChange={() => setNotifications(prev => ({ ...prev, achievements: !prev.achievements }))}
+                          checked={notificationSettings.achievements}
+                          onChange={() => setNotificationSettings(prev => ({ ...prev, achievements: !prev.achievements }))}
                           className="accent-pink-500 w-4 h-4"
                         />
                         Achievement Unlocks
-                      </label>
+                      </div>
                     </div>
                   </div>
 
